@@ -26,6 +26,16 @@ def get_data(path):
         part_text = text[:10000]
     return part_text
 
+# ★★★ 修正点１：collate_fn を関数の外に定義し、tokenizer を引数として受け取る ★★★
+def collate_fn(batch: List[str], tokenizer: PreTrainedTokenizer) -> BatchEncoding:
+    return tokenizer(
+        batch,
+        padding=True,
+        truncation=True,
+        return_tensors="pt",
+        max_length=512,
+    )
+
 @torch.inference_mode()
 def main():
     args = parse_args()
@@ -43,17 +53,15 @@ def main():
     tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
     model = BertModel.from_pretrained(model_name)
     model.eval().to(device)
-    
-    def collate_fn(batch: List[str]) -> BatchEncoding:
-        return tokenizer(
-            batch,
-            padding=True,
-            truncation=True,
-            return_tensors="pt",
-            max_length=512,
-        )
-    
-    dl = DataLoader(part_text, collate_fn=collate_fn, batch_size=16, num_workers=2)
+
+    # ★★★ 修正点２：num_workers=0 にし、lambda式で tokenizer を渡す ★★★
+    dl = DataLoader(
+        part_text,
+        collate_fn=lambda batch: collate_fn(batch, tokenizer=tokenizer),
+        batch_size=16,
+        num_workers=0
+    )
+
     vec_list=[]
     for batch in tqdm(dl):
         output = model(**batch.to(device))
@@ -69,5 +77,6 @@ def main():
     vec_array = F.normalize(vec_array)
     vec_array.detach().numpy()
     np.savez_compressed("./vec_array", vec_array)
+
 if __name__ == "__main__":
     main()
