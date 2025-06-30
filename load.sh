@@ -1,5 +1,5 @@
 #!/bin/sh
-device=cuda:0
+device=cpu
 text=おバイオ
 
 python load.py \
