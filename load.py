@@ -45,7 +45,7 @@ def main():
     index = faiss.IndexFlatIP(vec_array.shape[1])
     index.add(vec_array)
     D, I = index.search(output.detach().numpy(), num_of_preds)
-    preds=I[0][:5]
+    preds=I[0][:6]
     for id, pred in enumerate(preds):
         print(df.to_dict("records")[pred]["text"])
         print(D[0][id])
