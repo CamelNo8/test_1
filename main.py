@@ -75,7 +75,7 @@ def main():
     )
     vec_array = torch.cat(vec_list, dim=0)
     vec_array = F.normalize(vec_array)
-    vec_array.detach().numpy()
+    vec_array = vec_array.detach().cpu().numpy()
     np.savez_compressed("./vec_array", vec_array)
 
 if __name__ == "__main__":
